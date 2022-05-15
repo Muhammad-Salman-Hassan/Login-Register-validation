@@ -1,5 +1,7 @@
 import express, { Request, Response } from "express";
 import { LoginUser } from "../models/Userschema";
+const bcrypt=require('bcrypt')
+
 
 export const RegisterUser = async (req: Request, res: Response) => {
   const { username, firstname, lastname, password, address, email } = req.body;
@@ -16,13 +18,16 @@ export const RegisterUser = async (req: Request, res: Response) => {
     email,
     address,
   });
-  User.save()
-    .then((err: any) => {
-      res.send(err);
-    })
-    .then((user) => {
-      res.send(user);
-    });
+  
+  try {
+    await User.save()
+    const token=await User.generateAuthToken()
+  } catch (error) {
+    res.send(error)
+  }
+  
+
+  
 };
 
 export const Login = async (req: Request, res: Response) => {
@@ -30,8 +35,13 @@ export const Login = async (req: Request, res: Response) => {
   if (!email || !password) {
     return res.send({ message: "Please fill both Field" });
   }
-  const EmailMatch = await LoginUser.findOne({ email: email });
-  if (EmailMatch) {
+  const UserLoggedIn = await LoginUser.findOne({ email: email });
+  
+  const matchCredentials=await bcrypt.compare(password,UserLoggedIn?.password)
+  const token=UserLoggedIn?.generateAuthToken()
+  
+
+  if (matchCredentials) {
     res.send("User Sign in Successfully");
   }
 };
