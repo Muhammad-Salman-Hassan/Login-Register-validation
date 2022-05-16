@@ -1,6 +1,9 @@
 import express, { Request, Response } from "express";
+import { generateAuthToken } from "../jwt/utils.jwt";
 import { LoginUser } from "../models/Userschema";
 const bcrypt=require('bcrypt')
+const jwt=require('jsonwebtoken')
+require("dotenv").config();
 
 
 export const RegisterUser = async (req: Request, res: Response) => {
@@ -21,7 +24,7 @@ export const RegisterUser = async (req: Request, res: Response) => {
   
   try {
     await User.save()
-    const token=await User.generateAuthToken()
+    // const token=await User.generateAuthToken()
   } catch (error) {
     res.send(error)
   }
@@ -36,12 +39,21 @@ export const Login = async (req: Request, res: Response) => {
     return res.send({ message: "Please fill both Field" });
   }
   const UserLoggedIn = await LoginUser.findOne({ email: email });
-  
+  console.log(UserLoggedIn)
   const matchCredentials=await bcrypt.compare(password,UserLoggedIn?.password)
-  const token=UserLoggedIn?.generateAuthToken()
+  console.log(matchCredentials)
+  
   
 
-  if (matchCredentials) {
-    res.send("User Sign in Successfully");
+  if (matchCredentials && UserLoggedIn) {
+  
+    const token=generateAuthToken(UserLoggedIn?._id,process.env.SECRET_KEY)
+    console.log(token)
+    
+    
+
+    
+
+  
   }
 };
