@@ -1,10 +1,9 @@
 import express, { Request, Response } from "express";
 import { generateAuthToken } from "../jwt/utils.jwt";
-import { LoginUser } from "../models/Userschema";
-const bcrypt=require('bcrypt')
-const jwt=require('jsonwebtoken')
+import { Users } from "../models/Userschema";
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
-
 
 export const RegisterUser = async (req: Request, res: Response) => {
   const { username, firstname, lastname, password, address, email } = req.body;
@@ -13,7 +12,7 @@ export const RegisterUser = async (req: Request, res: Response) => {
     return res.json({ message: "Please Filled all Fields" });
   }
 
-  let User = new LoginUser({
+  let User = new Users({
     username,
     firstname,
     lastname,
@@ -21,16 +20,13 @@ export const RegisterUser = async (req: Request, res: Response) => {
     email,
     address,
   });
-  
+
   try {
-    await User.save()
+    await User.save();
     // const token=await User.generateAuthToken()
   } catch (error) {
-    res.send(error)
+    res.send(error);
   }
-  
-
-  
 };
 
 export const Login = async (req: Request, res: Response) => {
@@ -38,22 +34,16 @@ export const Login = async (req: Request, res: Response) => {
   if (!email || !password) {
     return res.send({ message: "Please fill both Field" });
   }
-  const UserLoggedIn = await LoginUser.findOne({ email: email });
-  console.log(UserLoggedIn)
-  const matchCredentials=await bcrypt.compare(password,UserLoggedIn?.password)
-  console.log(matchCredentials)
-  
-  
+  const UserLoggedIn = await Users.findOne({ email: email });
+  console.log(UserLoggedIn);
+  const matchCredentials = await bcrypt.compare(
+    password,
+    UserLoggedIn?.password
+  );
+  console.log(matchCredentials);
 
   if (matchCredentials && UserLoggedIn) {
-  
-    const token=generateAuthToken(UserLoggedIn?._id,process.env.SECRET_KEY)
-    console.log(token)
-    
-    
-
-    
-
-  
+    const token = generateAuthToken(UserLoggedIn?._id, process.env.SECRET_KEY);
+    console.log(token);
   }
 };
